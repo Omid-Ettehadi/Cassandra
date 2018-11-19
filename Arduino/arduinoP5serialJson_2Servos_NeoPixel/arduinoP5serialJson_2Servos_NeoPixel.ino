@@ -1,46 +1,82 @@
 /*
- * Creation & Computation - Digital Futures, OCAD University
- * Kate Hartman / Nick Puckett
+ * Cassandra
  * 
- * Send 2 values to P5.js
- * values are formatted as JSON objects
- * This example reads 2 values from p5 and outputs to led brightness
- * 
- * 
+ * Created 18 Nov 2018
+ * by April De Zen, & Veda Adnani, & Omid Ettehadi
  */
+ 
+ // Libraries
 #include <ArduinoJson.h>
+#include <FastLED.h>
 #include <Servo.h>
-//*****BE SURE TO INSTALL VERSION 5.13.3 OF THE LIBRARY IT INSTALL V6BETA BY DEFAULT 
 
+// Pin Definition
+#define SERVO1pin 12
+#define SERVO2pin 11
+#define LEDpin 10
+
+// LED Strip
+#define NUM_LEDS 60
+
+// Objects
 Servo myServo1; 
-Servo myServo2; 
+Servo myServo2;
+CRGB leds[NUM_LEDS]; 
 
-int SERVO1 = 11;
-int SERVO2 = 12;
-int LEDpin1 = 10;
+// Variables
+int angleServo1;
+int angleServo2;
 
-int p5Input1;                                   //these variables hold the input values
-int p5Input2;
+// Sampling
+unsigned long lastRead;
+const int sampleRate = 25;
 
-
-void setup() 
+void setup()
 {
-  Serial.begin(9600);                                     //turn on the serial port
-  pinMode(LEDpin1,OUTPUT);                       //  
-myServo1.attach(SERVO1);
-myServo2.attach(SERVO2);
+  // Initialize serial communications
+  Serial.begin(9600);
+
+  // Assign Pins
+  pinMode(LEDpin,OUTPUT);
+  myServo1.attach(SERVO1pin);
+  myServo2.attach(SERVO2pin);
+
+  // Initialize all variables
+  angleServo1 = 0;
+  angleServo2 = 0;
+
+  // Setup LED Strip
+  FastLED.addLeds<WS2812, LEDpin, GRB>(leds, NUM_LEDS);
 }
 
 void loop() 
 {
-  DynamicJsonBuffer messageBuffer(200);                   //create the Buffer for the JSON object        
-  JsonObject& p5Read = messageBuffer.parse(Serial);      //create a JsonObject variable and attach it to incoming Serial messages     
- 
-  p5Input1 = p5Read["somethingsomething"];
-  p5Input2 = p5Read["led2"];
+  if (millis() - lastRead >= sampleRate)
+  {
+    DynamicJsonBuffer messageBuffer(200);                 // Buffer for the JSON object        
+    JsonObject& p5Read = messageBuffer.parse(Serial);     // JsonObject attaches to incoming serial message
+    
+    angleServo1 = p5Read["servo1"];                       // Assign "servo1" from the json object to angleServo1
+    angleServo2 = p5Read["servo2"];                       // Assign "servo2" from the json object to angleServo2
+  
+    myServo1.write(angleServo1);                          // Set the angleServo1 to the myServo1
+    myServo2.write(angleServo2);                          // Set the angleServo2 to the myServo2
 
-  analogWrite(LEDpin1,p5Input1);
-  mySerco1.write(p5Input1);
-  mySerco1.write(p5Input2);
-
+    /*
+    // LED Strip
+    // Going white and then off
+    for (int i = 0; i <= 60; i++)
+    {
+      leds[i] = CRGB ( 255, 255, 255);
+      FastLED.show();
+    }
+    for (int i = 60; i >= 0; i--) 
+    {
+      leds[i] = CRGB ( 0, 0, 0);
+      FastLED.show();
+    }
+    */
+    
+    lastRead = millis();
+  }
 }
