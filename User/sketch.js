@@ -33,12 +33,12 @@ function setup()
     trueButton = createButton('True');
     trueButton.size(100,50);
     trueButton.position((windowWidth * (1/2)) - 150 ,(windowHeight * (3/4)) - 25);
-    trueButton.mousePressed(trueButtonFunction);
+    trueButton.mousePressed(function() { buttonFunction(true);});
 	
 	falseButton = createButton('False');
     falseButton.size(100,50);
     falseButton.position((windowWidth * (1/2)) + 50 ,(windowHeight * (3/4)) - 25);
-    falseButton.mousePressed(falseButtonFunction); 
+    falseButton.mousePressed(function() { buttonFunction(false);}); 
 }
 
 function draw() 
@@ -46,18 +46,20 @@ function draw()
     // Do nothing
 }
 
-function trueButtonFunction()
+function buttonFunction(index)
 {
-    sendTheMessage(true);
-	trueButton.hide();
-	falseButton.hide();
-}
-
-function falseButtonFunction()
-{
-    sendTheMessage(false);
-	trueButton.hide();
-	falseButton.hide();
+	if ( index == true ) 
+	{
+		sendTheMessage(true);
+		trueButton.hide();
+		falseButton.hide();
+	} else if ( index == false )
+	{
+		sendTheMessage(false);
+		trueButton.hide();
+		falseButton.hide();
+	}
+	
 }
 
 // Send data to pubnub
