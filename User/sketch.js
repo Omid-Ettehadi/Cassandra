@@ -7,11 +7,15 @@ var textChannelName = "textChannel";
 var dataChannelName = "dataChannel";
 
 // Input variables
-var mainText;
 var trueButton, falseButton;
 var trueText, falseText;
+
 var timer, timerVisible;
 var t;
+
+// Pages
+var initialPage, logo;
+
 
 /* -------------------- Functions -------------------- */
 function setup() 
@@ -54,14 +58,23 @@ function setup()
 	
 	// Thank you page
 	thanksPage = createImg('images/Thanks.png');
-	thanksPage.size( windowWidth * (1/3) , windowWidth * (1/3) * (1.68));
+	thanksPage.size( windowWidth * (2/3) , windowWidth * (2/3) * (1.68));
 	thanksPage.position((windowWidth/2) - (thanksPage.width/2), (windowHeight/2) - (thanksPage.height/2));
 	thanksPage.hide();
 	
 	timer = 30;
 	setInterval(timerFunction, 1000);
-	timerVisible = true;
+	timerVisible = false;
 	t = second();
+	
+	// Initial Page
+	initialPage = createImg("images/Background.gif");
+	initialPage.size(windowWidth, windowHeight);
+	initialPage.position(0,0);
+	
+	logo = createImg("images/Logo.png");
+	logo.size(550,95);
+	logo.position((windowWidth/2) - (logo.width/2), (windowHeight/2) - (logo.height/2));
 }
 
 function draw() 
@@ -116,7 +129,7 @@ function buttonFunction(index)
 		timer = 30;
 		background(0);
 		thanksPage.show();
-		thanksPage.size( windowWidth * (1/3) , windowWidth * (1/3) * (1.68));
+		thanksPage.size( windowWidth * (2/3) , windowWidth * (2/3) * (1.68));
 		thanksPage.position((windowWidth/2) - (thanksPage.width/2), (windowHeight/2) - (thanksPage.height/2));
 
 	} else if ( index == false )
@@ -130,7 +143,7 @@ function buttonFunction(index)
 		timer = 30;
 		background(0);
 		thanksPage.show();
-		thanksPage.size( windowWidth * (1/3) , windowWidth * (1/3) * (1.68));
+		thanksPage.size( windowWidth * (2/3) , windowWidth * (2/3) * (1.68));
 		thanksPage.position((windowWidth/2) - (thanksPage.width/2), (windowHeight/2) - (thanksPage.height/2));
 	}
 	
@@ -154,18 +167,39 @@ function readIncoming(inMessage)
 {
 	if(inMessage.channel == textChannelName)
 	{
-		thanksPage.hide();
-		background(255);
-		noStroke();
-		fill(0);
-		textSize(30);
-		text(inMessage.message.theMessage, windowWidth * (1/4), windowHeight * (1/4), windowWidth * (2/4), windowHeight * (2/4));
-		
-		timerVisible = true;
-		trueButton.show();
-		trueText.show();
-		falseButton.show();
-		falseText.show();
+		if ( inMessage.message.theMessage == 0 )
+		{
+			initialPage.hide();
+			logo.hide();
+			timerVisible = true;
+			trueButton.show();
+			trueText.show();
+			falseButton.show();
+			falseText.show();
+		}
+		else if ( inMessage.message.theMessage == 2 || inMessage.message.theMessage == 4 || inMessage.message.theMessage == 6 || inMessage.message.theMessage == 8 || inMessage.message.theMessage == 10)
+		{
+			thanksPage.hide();			
+			timerVisible = true;
+			trueButton.show();
+			trueText.show();
+			falseButton.show();
+			falseText.show();
+		}
+		else if ( inMessage.message.theMessage == 1 || inMessage.message.theMessage == 3 || inMessage.message.theMessage == 5 || inMessage.message.theMessage == 7 || inMessage.message.theMessage == 9 || inMessage.message.theMessage == 11 )
+		{
+			trueButton.hide();
+			trueText.hide();
+			falseButton.hide();
+			falseText.hide();
+			timerVisible = false;
+			timer = 30;
+			background(0);
+			thanksPage.show();
+			thanksPage.size( windowWidth * (2/3) , windowWidth * (2/3) * (1.68));
+			thanksPage.position((windowWidth/2) - (thanksPage.width/2), (windowHeight/2) - (thanksPage.height/2));				
+		}
+			
 	}
 }
 
@@ -187,6 +221,6 @@ function windowResized()
     falseButton.position((windowWidth * (1/2)) - (falseButton.width/2) ,(windowHeight * (5/8)) - (falseButton.height/2) + 250);
     falseText.position((windowWidth * (1/2)) - (falseText.width/2) ,(windowHeight * (5/8)) - (falseText.height/2) + 250);
 	
-	thanksPage.size( windowWidth * (1/3) , windowWidth * (1/3) * (1.68));
+	thanksPage.size( windowWidth * (2/3) , windowWidth * (2/3) * (1.68));
 	thanksPage.position((windowWidth/2) - (thanksPage.width/2), (windowHeight/2) - (thanksPage.height/2));
 }

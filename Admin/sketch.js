@@ -31,7 +31,7 @@ function setup()
 
     // Next Text Button    
     nextButton = createButton('Next Text');
-    nextButton.size(100,50);
+    nextButton.size(500,500);
     nextButton.position((windowWidth * (1/2)) - 50 ,(windowHeight * (3/4)) - 25);
     nextButton.mousePressed(buttonFunction);
     
@@ -81,7 +81,37 @@ function buttonFunction()
         mainText = "5";
         sendTheMessage();
         index++;
-    } else 
+    } else if ( index == 6 )
+    {
+        mainText = "6";
+        sendTheMessage();
+        index++;
+    } else if ( index == 7 )
+    {
+        mainText = "7";
+        sendTheMessage();
+        index++;
+    } else if ( index == 8 )
+    {
+        mainText = "8";
+        sendTheMessage();
+        index++;
+    } else if ( index == 9 )
+    {
+        mainText = "9";
+        sendTheMessage();
+        index++;
+    } else if ( index == 10 )
+    {
+        mainText = "10";
+        sendTheMessage();
+        index++;
+    } else if ( index == 11 )
+    {
+        mainText = "11";
+        sendTheMessage();
+        index++;
+    }  else 
     {
         // Do nothing
     }
