@@ -18,15 +18,21 @@ var servoAngle2;
 var sendRate = 100;              		// Rate of sending data to arduino
 
 // Input variables
-var mainText;
+var pageNumber;
 var trueCount, falseCount;
+var t, track;
+
+var disclaimer;
+var initialPage;
+var logo;
+
 
 /* -------------------- Functions -------------------- */
 function setup() 
 {
     getAudioContext().resume();
     createCanvas(windowWidth, windowHeight);
-    background(255);
+    background(0);
     
     // Initialize pubnub
     dataServer = new PubNub(
@@ -41,23 +47,71 @@ function setup()
     dataServer.subscribe({channels: [textChannelName,dataChannelName]});
 
     // Setting up the serial port
-    serial = new p5.SerialPort();		// Create the serial port object
+    /*serial = new p5.SerialPort();		// Create the serial port object
     serial.open(serialPortName);		// Open the serialport
     serial.on('open',ardCon);			// Open the socket connection
-    setInterval(sendData,sendRate);		// Setting the send rate     
+    setInterval(sendData,sendRate);		// Setting the send rate   */  
 	
     trueCount = 0;
     falseCount = 0;
+	pageNumber = 0;
+	t = second();
+	track = 0;
+	
+	// --------------- Pages --------------- //
+	// Disclaimer
+	disclaimer = createImg("images/Disclaimer.png");
+	disclaimer.size(700, 78);
+	disclaimer.position((windowWidth/2) - (disclaimer.width/2), (windowHeight/2) - (disclaimer.height/2));
+	
+	// Initial Page
+	initialPage = createImg("images/Background.gif");
+	initialPage.size(windowWidth, windowHeight);
+	initialPage.position(0,0);
+	initialPage.hide();
+	
+	logo = createImg("images/Logo.png");
+	logo.size(550,95);
+	logo.position((windowWidth/2) - (logo.width/2), (windowHeight/2) - (logo.height/2));
+	logo.hide();
+	
 }
 
 function draw() 
 {
-    // Do nothing
+    if ( track == 0 )
+	{
+		if (second() - t > 8 || t - second() > 59 - 8 )
+		{
+			track = 1;
+			disclaimer.hide();
+			initialPage.show();
+			logo.show();
+		}
+	}
+	else if ( pageNumber == 1)
+	{
+	}
+	else if ( pageNumber == 2)
+	{
+	}
+	else if ( pageNumber == 3)
+	{
+	}
 }
 
 function windowResized() 
 {
     resizeCanvas(windowWidth, windowHeight);
+	
+	disclaimer.size(700, 78);
+	disclaimer.position((windowWidth/2) - (disclaimer.width/2), (windowHeight/2) - (disclaimer.height/2));
+	
+	initialPage.size(windowWidth, windowHeight);
+	initialPage.position(0,0);
+	logo.size(550,95);
+	logo.position((windowWidth/2) - (logo.width/2), (windowHeight/2) - (logo.height/2));
+	
 }
 
 /* -------------------- PubNub -------------------- */
@@ -72,26 +126,28 @@ function readIncoming(inMessage)
 {
     if(inMessage.channel == textChannelName)
     {
-	trueCount = 0;
-        falseCount = 0;
-	background(255);
-	noStroke();
-	fill(0);
-	textSize(30);
-	text(inMessage.message.theMessage, windowWidth * (1/4), windowHeight * (1/4), windowWidth * (2/4), windowHeight * (2/4));
+		pageNumber++;
+		trueCount = 0;
+		falseCount = 0;
+		
+		background(255);
+		noStroke();
+		fill(0);
+		textSize(30);
+		text(inMessage.message.theMessage, windowWidth * (1/4), windowHeight * (1/4), windowWidth * (2/4), windowHeight * (2/4));
     } 
 
     if(inMessage.channel == dataChannelName)
     {
-	if ( inMessage.message.theMessage == true )
-        {
-            trueCount++;
-            console.log("True Count: " + trueCount);
-        } else if ( inMessage.message.theMessage == false )
-        {
-            falseCount++;
-            console.log("False Count: " + falseCount);
-        }
+		if ( inMessage.message.theMessage == true )
+		{
+			trueCount++;
+			console.log("True Count: " + trueCount);
+		} else if ( inMessage.message.theMessage == false )
+		{
+			falseCount++;
+			console.log("False Count: " + falseCount);
+		}
     }
 }
 
@@ -100,7 +156,7 @@ function whoisconnected(connectionInfo)
 
 }
 
-/* -------------------- Arduino -------------------- */
+/* -------------------- Arduino -------------------- 
 // Send data to Arduino
 function sendData()
 {
@@ -117,4 +173,4 @@ function sendData()
 function ardCon()
 {
     console.log("connected to the Arduino Micro! Let's Go");
-}
+}*/
