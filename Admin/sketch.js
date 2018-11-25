@@ -5,17 +5,17 @@ var pubKey = 'pub-c-1a8840fa-907a-4ac5-9c35-593f16e41599';
 var subKey = 'sub-c-01d14cd8-e853-11e8-b652-8a5de3112bb9';
 var textChannelName = "textChannel";
 
-// Input variables
-var index;
-var mainText;
-var nextButton;
+// Variables
+var index;          // Keep track of stage
+var mainText;       // Message to be sent
+var nextButton;     // Next button
 
 /* -------------------- Functions -------------------- */
 function setup() 
 {
     getAudioContext().resume();
     createCanvas(windowWidth, windowHeight);
-    background(255);
+    background(0);
     
     // Initialize pubnub
     dataServer = new PubNub(
@@ -31,23 +31,27 @@ function setup()
 
     // Next Text Button    
     nextButton = createButton('Next Text');
-    nextButton.size(500,500);
-    nextButton.position((windowWidth * (1/2)) - 50 ,(windowHeight * (3/4)) - 25);
+    nextButton.size((windowWidth/2),(windowHeight/3));
+    nextButton.position((windowWidth * (1/2)) - (nextButton.width/2) ,(windowHeight * (3/4)) - (nextButton.height/2));
     nextButton.mousePressed(buttonFunction);
     
+	// Initialize variables
     index = 0;
-    buttonFunction();  
+    buttonFunction();
 }
 
 function draw() 
 {
-    background(255);
+    background(0);
     
     // Show the message 
     textSize(30);
+	fill(255);
+	textAlign(CENTER);
     text(mainText, windowWidth * (1/4), windowHeight * (1/4), windowWidth * (2/4), windowHeight * (2/4));
 }
 
+// Base on index send a command
 function buttonFunction()
 {
     if ( index == 0 ) 
@@ -111,12 +115,25 @@ function buttonFunction()
         mainText = "11";
         sendTheMessage();
         index++;
-    }  else 
+    } else if ( index == 12 )
+    {
+        mainText = "12";
+        sendTheMessage();
+        index++;
+    } else 
     {
         // Do nothing
     }
 }
 
+function windowResized() 
+{
+    resizeCanvas(windowWidth, windowHeight);
+	nextButton.size((windowWidth/2),(windowHeight/3));
+    nextButton.position((windowWidth * (1/2)) - (nextButton.width/2) ,(windowHeight * (3/4)) - (nextButton.height/2));
+}
+
+/* -------------------- PubNub -------------------- */
 // Send data to pubnub
 function sendTheMessage()
 {
@@ -131,18 +148,6 @@ function sendTheMessage()
 }
 
 // Read data from pubnub
-function readIncoming(inMessage) 
-{
-    
-}
+function readIncoming(inMessage) {}
 
-function whoisconnected(connectionInfo)
-{
-
-}
-
-function windowResized() 
-{
-    resizeCanvas(windowWidth, windowHeight);
-    nextButton.position((windowWidth * (1/2)) - 50 ,(windowHeight * (3/4)) - 25);
-}
+function whoisconnected(connectionInfo) {}
