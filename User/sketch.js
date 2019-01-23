@@ -34,7 +34,7 @@ function setup()
     });
     
     // Attach callbacks to the pubnub object to handle messages and connections
-    dataServer.addListener({ message: readIncoming, presence: whoisconnected })
+    dataServer.addListener({ message: readIncoming })
     dataServer.subscribe({channels: [textChannelName,dataChannelName]});
 
     // Buttons   
@@ -203,7 +203,7 @@ function readIncoming(inMessage)
 	if(inMessage.channel == textChannelName)
 	{
 		// Closing the initial Page & going to vote page
-		if ( inMessage.message.theMessage == 0 )
+		if ( inMessage.message.theMessage == 1 )
 		{
 			initialPage.hide();
 			logo.hide();
@@ -214,7 +214,7 @@ function readIncoming(inMessage)
 			falseText.show();
 		}
 		// Voting pages
-		else if ( inMessage.message.theMessage == 2 || inMessage.message.theMessage == 4 || inMessage.message.theMessage == 6 || inMessage.message.theMessage == 8 || inMessage.message.theMessage == 10)
+		else if ( inMessage.message.theMessage == 3 || inMessage.message.theMessage == 5 || inMessage.message.theMessage == 7 || inMessage.message.theMessage == 9 || inMessage.message.theMessage == 11)
 		{
 			thanksPage.hide();			
 			timerVisible = true;
@@ -224,7 +224,7 @@ function readIncoming(inMessage)
 			falseText.show();
 		}
 		// Thank you pages
-		else if ( inMessage.message.theMessage == 1 || inMessage.message.theMessage == 3 || inMessage.message.theMessage == 5 || inMessage.message.theMessage == 7 || inMessage.message.theMessage == 9 || inMessage.message.theMessage == 11 || inMessage.message.theMessage == 13 )
+		else if ( inMessage.message.theMessage == 2 || inMessage.message.theMessage == 4 || inMessage.message.theMessage == 6 || inMessage.message.theMessage == 8 || inMessage.message.theMessage == 10 || inMessage.message.theMessage == 12 )
 		{
 			trueButton.hide();
 			trueText.hide();
@@ -238,7 +238,7 @@ function readIncoming(inMessage)
 			thanksPage.position((windowWidth/2) - (thanksPage.width/2), (windowHeight/2) - (thanksPage.height/2));				
 		}
 		// Final page
-		else if ( inMessage.message.theMessage == 12 )
+		else if ( inMessage.message.theMessage == 13 )
 		{
 			trueButton.hide();
 			trueText.hide();
@@ -254,5 +254,3 @@ function readIncoming(inMessage)
 			
 	}
 }
-
-function whoisconnected(connectionInfo) {}

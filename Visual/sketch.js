@@ -5,39 +5,49 @@ var pubKey = 'pub-c-1a8840fa-907a-4ac5-9c35-593f16e41599';
 var subKey = 'sub-c-01d14cd8-e853-11e8-b652-8a5de3112bb9';
 var textChannelName = "textChannel";
 var dataChannelName = "dataChannel";
+var isDataSentToPubNub;
 
 // Serial Connection variables
 var serial;       						// The serial port object
-var serialPortName = "COM7";
-
-var ardSend = {};						// JSON variable
-
-var servoAngle1;     					// Values for servo motors 
-var servoAngle2;
-
-var isDataSent;              			// Keep track of data being sent to arduino
+var serialPortName = "COM7";			// The serial port name
+var ardSend = {};						// JSON variable for Arduino's data
+var servoAngle1;     					// Value for servo motor 1 
+var servoAngle2;						// Value for servo motor 2
+var isDataSentToArduino;       			// Make sure data is only sent once
 
 // Audio
-var soundArticle1, soundArticle2, soundArticle3, soundArticle4, soundArticle5, soundArticle6;
-var isSongPlayed;
+var soundArticle1, soundArticle2,
+    soundArticle3, soundArticle4,
+	soundArticle5, soundArticle6;
+var isSongPlayed;						// Make sure song is only played once
 
 // Pages/Images
 var disclaimer;
 var initialPage, logo;
 var header;
 var voteNow;
-var article1, article2, article3, article4, article5, article6;
-var resArticle1, resArticle2, resArticle3, resArticle4, resArticle5, resArticle5;
+var article1, article2,
+    article3, article4,
+	article5, article6;
+var resArticle1, resArticle2,
+    resArticle3, resArticle4,
+	resArticle5, resArticle5;
 
 // Votes
 var trueCount, falseCount;
-var percentage1, percentage2, percentage3, percentage4, percentage5, percentage6;
-var percentageFalse1, percentageFalse2, percentageFalse3, percentageFalse4, percentageFalse5, percentageFalse6;
+var percentage1, percentage2,
+    percentage3, percentage4,
+	percentage5, percentage6;
+var percentageFalse1, percentageFalse2,
+    percentageFalse3, percentageFalse4,
+	percentageFalse5, percentageFalse6;
 var accuracy;
+
+// Timer variables
+var timer, shouldCount, timeAtStart;
 
 // Other
 var pageNumber;
-var t, track;
 
 /* -------------------- Functions -------------------- */
 function preload(){
@@ -78,12 +88,15 @@ function setup()
 	trueCount = 0;
     falseCount = 0;
 	
-	isDataSent = 0;
-	
-	t = second();
-	track = 0;
-	
+	isDataSentToPubNub = 0
+	isDataSentToArduino = 0;
 	isSongPlayed = 0;
+	
+	// Initializing timer variables
+	timer = 5;
+	shouldCount = false;
+	timeAtStart = second();
+	setInterval(timerFunction, 1000);					// Run timerFunction every second
 	
 	// --------------- Pages --------------- //
 	// Disclaimer
@@ -176,204 +189,332 @@ function setup()
 
 function draw() 
 {
-    if ( track == 0 )
+	// Logo Page
+    if ( pageNumber == 0 )
 	{
-		if (second() - t > 8 || t - second() > 59 - 8 )
+		if (second() - timeAtStart > 8 || timeAtStart - second() > 59 - 8 )
 		{
-			track = 1;
 			disclaimer.hide();
 			initialPage.show();
 			logo.show();
+			shouldCount = true;
 		}
 	}
+	// Question 1
 	else if ( pageNumber == 1)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		initialPage.hide();
 		logo.hide();
 		header.show();
-		isDataSent = 0;
 		article1.show();
 		voteNow.show();
-		if ( isSongPlayed == 0 ){
-			if ( soundArticle1.isPlaying() ) {
-				soundArticle1.setVolume(1);
-					
-			}
-			else {
-				soundArticle1.play();
-				soundArticle1.setVolume(1);
-				isSongPlayed = 1; 
-			}
+		// Audio
+		if ( isSongPlayed == 0 && !soundArticle1.isPlaying() ) 
+		{
+			soundArticle1.play();
+			soundArticle1.setVolume(1);
+			isSongPlayed = 1; 
 		}
+		// Arduino
+		isDataSentToArduino = 0;
 	}
+	// Answer 1
 	else if ( pageNumber == 2)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		article1.hide();
-		isSongPlayed = 0;
 		resArticle1.show();
 		voteNow.hide();
-		if ( isDataSent == 0 )
+		// Audio
+		isSongPlayed = 0;
+		// Data
+		if ( isDataSentToArduino == 0 )
 		{
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage1 = 0;
+				percentageFalse1 = 0;
+			}
+			else 
+			{
+				percentage1 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse1 = (falseCount/(trueCount+falseCount))*100;
+			}
+			trueCount = 0;
+			falseCount = 0;
+			// Arduino
 			sendData();
-			isDataSent = 1;
+			isDataSentToArduino = 1;
 		}
 	}
+	// Question 2
 	else if ( pageNumber == 3)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		resArticle1.hide();
-		isDataSent = 0;
 		article2.show();
 		voteNow.show();
-		if ( isSongPlayed == 0 ){
-			if ( soundArticle2.isPlaying() ) {
-				soundArticle2.setVolume(1);
-					
-			}
-			else {
-				soundArticle2.play();
-				soundArticle2.setVolume(1);
-				isSongPlayed = 1; 
-			}
+		// Audio
+		if ( isSongPlayed == 0  && !soundArticle2.isPlaying() ) 
+		{
+			soundArticle2.play();
+			soundArticle2.setVolume(1);
+			isSongPlayed = 1; 
 		}
+		// Arduino
+		isDataSentToArduino = 0;
 	}
+	// Answer 2
 	else if ( pageNumber == 4)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		article2.hide();
-		isSongPlayed = 0;
 		resArticle2.show();
 		voteNow.hide();
-		if ( isDataSent == 0 )
+		// Audio
+		isSongPlayed = 0;
+		// Data
+		if ( isDataSentToArduino == 0 )
 		{
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage2 = 0;
+				percentageFalse2 = 0;
+			}
+			else 
+			{
+				percentage2 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse2 = (falseCount/(trueCount+falseCount))*100;
+			}
+			trueCount = 0;
+			falseCount = 0;
+			// Arduino
 			sendData();
-			isDataSent = 1;
+			isDataSentToArduino = 1;
 		}
 	}
+	// Question 3
 	else if ( pageNumber == 5)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		resArticle2.hide();
-		isDataSent = 0;
 		article3.show();
 		voteNow.show();
-		if ( isSongPlayed == 0 ){
-			if ( soundArticle3.isPlaying() ) {
-				soundArticle3.setVolume(1);
-					
-			}
-			else {
-				soundArticle3.play();
-				soundArticle3.setVolume(1);
-				isSongPlayed = 1; 
-			}
+		// Audio
+		if ( isSongPlayed == 0 && !soundArticle3.isPlaying() )
+		{
+			soundArticle3.play();
+			soundArticle3.setVolume(1);
+			isSongPlayed = 1; 
 		}
+		// Arduino
+		isDataSentToArduino = 0;
 	}
+	// Answer 3
 	else if ( pageNumber == 6)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		article3.hide();
-		isSongPlayed = 0;
 		resArticle3.show();
 		voteNow.hide();
-		if ( isDataSent == 0 )
+		// Audio
+		isSongPlayed = 0;
+		// Data
+		if ( isDataSentToArduino == 0 )
 		{
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage3 = 0;
+				percentageFalse3 = 0;
+			}
+			else 
+			{
+				percentage3 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse3 = (falseCount/(trueCount+falseCount))*100;
+			}
+			trueCount = 0;
+			falseCount = 0;
+			// Arduino
 			sendData();
-			isDataSent = 1;
+			isDataSentToArduino = 1;
 		}
 	}
+	// Question 4
 	else if ( pageNumber == 7)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		resArticle3.hide();
-		isDataSent = 0;
 		article4.show();
 		voteNow.show();
-		if ( isSongPlayed == 0 ){
-			if ( soundArticle4.isPlaying() ) {
-				soundArticle4.setVolume(1);
-					
-			}
-			else {
-				soundArticle4.play();
-				soundArticle4.setVolume(1);
-				isSongPlayed = 1; 
-			}
+		// Audio
+		if ( isSongPlayed == 0 && !soundArticle4.isPlaying() )
+		{
+			soundArticle4.play();
+			soundArticle4.setVolume(1);
+			isSongPlayed = 1; 
 		}
+		// Arduino
+		isDataSentToArduino = 0;
 	}
+	// Answer 4
 	else if ( pageNumber == 8)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		article4.hide();
-		isSongPlayed = 0;
 		resArticle4.show();
 		voteNow.hide();
-		if ( isDataSent == 0 )
+		// Audio
+		isSongPlayed = 0;
+		// Data
+		if ( isDataSentToArduino == 0 )
 		{
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage4 = 0;
+				percentageFalse4 = 0;
+			}
+			else 
+			{
+				percentage4 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse4 = (falseCount/(trueCount+falseCount))*100;
+			}
+			trueCount = 0;
+			falseCount = 0;
+			// Arduino
 			sendData();
-			isDataSent = 1;
+			isDataSentToArduino = 1;
 		}
 	}
+	// Question 5
 	else if ( pageNumber == 9)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		resArticle4.hide();
-		isDataSent = 0;
 		article5.show();
 		voteNow.show();
-		if ( isSongPlayed == 0 ){
-			if ( soundArticle5.isPlaying() ) {
-				soundArticle5.setVolume(1);
-					
-			}
-			else {
-				soundArticle5.play();
-				soundArticle5.setVolume(1);
-				isSongPlayed = 1; 
-			}
+		// Audio
+		if ( isSongPlayed == 0 && !soundArticle5.isPlaying() )
+		{
+			soundArticle5.play();
+			soundArticle5.setVolume(1);
+			isSongPlayed = 1; 
 		}
+		// Arduino
+		isDataSentToArduino = 0;
 	}
+	// Answer 5
 	else if ( pageNumber == 10)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		article5.hide();
-		isSongPlayed = 0;
 		resArticle5.show();
 		voteNow.hide();
-		if ( isDataSent == 0 )
+		// Audio
+		isSongPlayed = 0;
+		// Data
+		if ( isDataSentToArduino == 0 )
 		{
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage5 = 0;
+				percentageFalse5 = 0;
+			}
+			else 
+			{
+				percentage5 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse5 = (falseCount/(trueCount+falseCount))*100;
+			}
+			trueCount = 0;
+			falseCount = 0;
+			// Arduino
 			sendData();
-			isDataSent = 1;
+			isDataSentToArduino = 1;
 		}
 	}
+	// Question 6
 	else if ( pageNumber == 11)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		resArticle5.hide();
-		isDataSent = 0;
 		article6.show();
 		voteNow.show();
-		if ( isSongPlayed == 0 ){
-			if ( soundArticle6.isPlaying() ) {
-				soundArticle6.setVolume(1);
-					
-			}
-			else {
-				soundArticle6.play();
-				soundArticle6.setVolume(1);
-				isSongPlayed = 1; 
-			}
+		// Audio
+		if ( isSongPlayed == 0 && !soundArticle6.isPlaying() ) 
+		{
+			soundArticle6.play();
+			soundArticle6.setVolume(1);
+			isSongPlayed = 1; 
 		}
+		// Arduino
+		isDataSentToArduino = 0;
 	}
+	// Answer 6
 	else if ( pageNumber == 12)
 	{
+		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
+		// Visual
 		article6.hide();
-		isSongPlayed = 0;
 		resArticle6.show();
 		voteNow.hide();
-		if ( isDataSent == 0 )
+		// Audio
+		isSongPlayed = 0;
+		// Data
+		if ( isDataSentToArduino == 0 )
 		{
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage6 = 0;
+				percentageFalse6 = 0;
+			}
+			else 
+			{
+				percentage6 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse6 = (falseCount/(trueCount+falseCount))*100;
+			}
+			trueCount = 0;
+			falseCount = 0;
+			// Arduino
 			sendData();
-			isDataSent = 1;
+			isDataSentToArduino = 1;
 		}
 	}
+	// Result Page
 	else if ( pageNumber == 13)
 	{
+		sendTheMessage();
+		// Visual
 		resArticle6.hide();
-		isDataSent = 0;
 		finalPage();
-		pageNumber++;
+		// Audio
+		isSongPlayed = 0;
+		//Arduino
+		isDataSentToArduino = 0;
+		pageNumber = "Done";
+	}
+}
+
+// Decrease timer variable by 1
+function timerFunction(){
+	if ( shouldCount == true)
+	{
+		timer = timer - 1;
+		if (timer <= 0){
+			pageNumber++;
+			isDataSentToPubNub = 0;
+			timer = 5;
+		}
 	}
 }
 
@@ -382,71 +523,64 @@ function finalPage ()
 	//textFont("Bebas");
 	
 	// Question 1
-	stroke(255);
-    fill(140, 198, 63);
-	noStroke();
+    noStroke();
+	fill(140, 198, 63);
     rect(50, 140, (windowWidth-100), 30);
 
     noStroke();
     fill(193, 39, 45);
-    var w = (windowWidth-100) * (percentageFalse1/100);
+    w = (windowWidth-100) * (percentageFalse1/100);
     rect(50, 140, w, 30);
 	
-	var percentageFalse1Text = round(percentageFalse1) + " % ";
-	textAlign(LEFT);
-	textSize(21);
 	fill(193, 39, 45);
-	text(percentageFalse1Text, 50, 175, windowWidth/3,50);
+	textSize(21);
+	textAlign(LEFT);
+	text(round(percentageFalse1) + " % ", 50, 175, windowWidth/3,50);
 	
 	fill(255);
-	textAlign(LEFT);
 	textSize(14);
+	textAlign(LEFT);
 	text('QUESTION 1', 50, 120, windowWidth/3,50);
 	
-	
 	// Question 2
-	stroke(255);
-    fill(193, 39, 45);
-	noStroke();
+    noStroke();
+	fill(193, 39, 45);
     rect(50, 240, (windowWidth-100), 30);
 
     noStroke();
     fill(140, 198, 63);
-    var w = (windowWidth-100) * (percentage2/100);
+    w = (windowWidth-100) * (percentage2/100);
     rect(50, 240, w, 30);
 	
-	var percentage2Text = round(percentage2) + " % ";
-	textAlign(LEFT);
+	fill(140, 198, 63);
 	textSize(21);
-	text(percentage2Text, 50, 275, windowWidth/3,50);
+	textAlign(LEFT);
+	text(round(percentage2) + " % ", 50, 275, windowWidth/3,50);
 	
 	fill(255);
-	textAlign(LEFT);
 	textSize(14);
+	textAlign(LEFT);
 	text('QUESTION 2', 50, 220, windowWidth/3,50);
 
-
 	// Question 3
-	stroke(255);
-    fill(193, 39, 45);
 	noStroke();
+    fill(193, 39, 45);
     rect(50, 340, (windowWidth-100), 30);
 
     noStroke();
     fill(140, 198, 63);
-    var w = (windowWidth-100) * (percentage3/100);
+    w = (windowWidth-100) * (percentage3/100);
     rect(50, 340, w, 30);
 	
-	var percentage3Text = round(percentage3) + " % ";
-	textAlign(LEFT);
+	fill(140, 198, 63);
 	textSize(21);
-	text(percentage3Text, 50, 375, windowWidth/3,50);
+	textAlign(LEFT);
+	text(round(percentage3) + " % ", 50, 375, windowWidth/3,50);
 	
 	fill(255);
-	textAlign(LEFT);
 	textSize(14);
+	textAlign(LEFT);
 	text('QUESTION 3', 50, 320, windowWidth/3,50);
-	
 	
 	// Question 4
 	stroke(255);
@@ -528,12 +662,23 @@ function windowResized() {}
 
 /* -------------------- PubNub -------------------- */
 // Send data to pubnub
-function sendTheMessage() {}
+function sendTheMessage() {
+	dataServer.publish(
+    {
+        channel: textChannelName,
+        message: 
+        {
+            theMessage: pageNumber,
+        }
+    });
+	isDataSentToPubNub = 1;
+	//console.log(pageNumber);
+}
 
 // Read data from pubnub
 function readIncoming(inMessage) 
 {
-    if(inMessage.channel == textChannelName)
+    /*if(inMessage.channel == textChannelName)
     {
 		pageNumber++;
 		if ( pageNumber == 1 )
@@ -542,40 +687,84 @@ function readIncoming(inMessage)
 			falseCount = 0;
 		} else if ( pageNumber == 3 ) 
 		{
-			percentage1 = (trueCount/(trueCount+falseCount))*100;
-			percentageFalse1 = (falseCount/(trueCount+falseCount))*100;
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage1 = 0;
+				percentageFalse1 = 0;
+			}
+			else {
+				percentage1 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse1 = (falseCount/(trueCount+falseCount))*100;
+			}
 			trueCount = 0;
 			falseCount = 0;
 		} else if ( pageNumber == 5 ) 
 		{
-			percentage2 = (trueCount/(trueCount+falseCount))*100;
-			percentageFalse2 = (falseCount/(trueCount+falseCount))*100;
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage2 = 0;
+				percentageFalse2 = 0;
+			}
+			else {
+				percentage2 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse2 = (falseCount/(trueCount+falseCount))*100;
+			}
 			trueCount = 0;
 			falseCount = 0;
 		} else if ( pageNumber == 7 ) 
 		{
-			percentage3 = (trueCount/(trueCount+falseCount))*100;
-			percentageFalse3 = (falseCount/(trueCount+falseCount))*100;
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage3 = 0;
+				percentageFalse3 = 0;
+			}
+			else {
+				percentage3 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse3 = (falseCount/(trueCount+falseCount))*100;
+			}
 			trueCount = 0;
 			falseCount = 0;
 		} else if ( pageNumber == 9 ) 
 		{
-			percentage4 = (trueCount/(trueCount+falseCount))*100;
-			percentageFalse4 = (falseCount/(trueCount+falseCount))*100;
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage4 = 0;
+				percentageFalse4 = 0;
+			}
+			else {
+				percentage4 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse4 = (falseCount/(trueCount+falseCount))*100;
+			}
 			trueCount = 0;
 			falseCount = 0;
 		} else if ( pageNumber == 11 ) 
 		{
-			percentage5 = (trueCount/(trueCount+falseCount))*100;
-			percentageFalse5 = (falseCount/(trueCount+falseCount))*100;
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage5 = 0;
+				percentageFalse5 = 0;
+			}
+			else {
+				percentage5 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse5 = (falseCount/(trueCount+falseCount))*100;
+			}
 			trueCount = 0;
 			falseCount = 0;
 		} else if ( pageNumber == 12 ) 
 		{
-			percentage6 = (trueCount/(trueCount+falseCount))*100;
-			percentageFalse6 = (falseCount/(trueCount+falseCount))*100;
+			if ( trueCount == 0 && falseCount == 0 )
+			{
+				percentage6 = 0;
+				percentageFalse6 = 0;
+			}
+			else {
+				percentage6 = (trueCount/(trueCount+falseCount))*100;
+				percentageFalse6 = (falseCount/(trueCount+falseCount))*100;
+			}
+			trueCount = 0;
+			falseCount = 0;
 		}
-    } 
+    } */
 
     if(inMessage.channel == dataChannelName)
     {
