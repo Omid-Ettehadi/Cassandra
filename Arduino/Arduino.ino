@@ -1,5 +1,5 @@
 /*
- * Cassandra
+ * Manufactured Realities
  * 
  * Created 18 Nov 2018
  * by April De Zen, & Veda Adnani, & Omid Ettehadi
@@ -16,12 +16,12 @@
 #define LEDpin 10
 
 // LED Strip
-#define NUM_LEDS 60
+#define NUM_LEDS 30
 
 // Objects
 Servo myServo1; 
 Servo myServo2;
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, LEDpin, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, LEDpin, NEO_GRB + NEO_KHZ800);
 
 // Variables
 int angleServo1;
@@ -67,7 +67,7 @@ void loop()
   {
     if ( track == 0 )
     {
-      for ( int j = 0; j < 60; j++)
+      for ( int j = 0; j < NUM_LEDS; j++)
       {
         strip.setPixelColor(j, 0, 0, 255);
         strip.show();
@@ -76,7 +76,7 @@ void loop()
     }
     else if ( track == 1) 
     {
-      for ( int j = 60; j >= 0; j--){
+      for ( int j = NUM_LEDS; j >= 0; j--){
         strip.setPixelColor(j, 0, 0, 0);
         strip.show();
       }
@@ -103,7 +103,7 @@ void loop()
 
      if ( angleServo1+angleServo2 == 180 )
     {
-      for ( int j = 0; j < 60; j++){
+      for ( int j = 0; j < NUM_LEDS; j++){
           strip.setPixelColor(j, 0, 0, 255);
           strip.show();
         }

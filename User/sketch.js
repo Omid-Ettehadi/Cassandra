@@ -1,10 +1,10 @@
 /* -------------------- Variables -------------------- */
 // Server variables
 var dataServer;
-var pubKey = 'pub-c-1a8840fa-907a-4ac5-9c35-593f16e41599';
-var subKey = 'sub-c-01d14cd8-e853-11e8-b652-8a5de3112bb9';
-var textChannelName = "textChannel";
-var dataChannelName = "dataChannel";
+var pubKey = 'pub-c-7b078ffc-490a-45f5-9ab4-67d0fe24506f';
+var subKey = 'sub-c-3f1bc6ee-24bd-11e9-b742-22d0c008a4f0';
+var adminChannelName = "adminChannel";
+var dataChannelName = "voteChannel";
 
 // Button variables
 var trueButton, falseButton;
@@ -12,6 +12,7 @@ var trueText, falseText;
 
 // Timer variables
 var timer, timerVisible;
+var timerPosition = 0;
 var t;
 
 // Pages
@@ -35,7 +36,7 @@ function setup()
     
     // Attach callbacks to the pubnub object to handle messages and connections
     dataServer.addListener({ message: readIncoming })
-    dataServer.subscribe({channels: [textChannelName,dataChannelName]});
+    dataServer.subscribe({channels: [adminChannelName,dataChannelName]});
 
     // Buttons   
     trueButton = createImg('images/Green.png');
@@ -84,35 +85,65 @@ function draw()
 	// Run only if timer is turned on
     if ( timerVisible == true )
 	{
-		// When timer is over, automatically go to the thank you page
-		if ( timer <= 0 )
-		{
-			trueButton.hide();
-			trueText.hide();
-			falseButton.hide();
-			falseText.hide();
-			timerVisible = false;
-			timer = 30;
-			background(0);
-			thanksPage.show();
-		} 
-		// else start the count down
-		else {
-			background(0);			
-			fill(255);
-			textFont("Bebas");
-			textSize(windowHeight/5);
-			textAlign(CENTER);
-			if ( timer <= 9 ) {
-				text( "0:0" + timer + "s" , 0,windowHeight/5,windowWidth,windowHeight/2);
-			} else {
-				text( "0:" + timer + "s" , 0,windowHeight/5,windowWidth,windowHeight/2);
+		if ( timerPosition == 0 )
+		{	
+			// When timer is over, automatically go to the thank you page
+			if ( timer <= 0 )
+			{
+				trueButton.hide();
+				trueText.hide();
+				falseButton.hide();
+				falseText.hide();
+				timerVisible = false;
+				timer = 30;
+				background(0);
+				thanksPage.show();
+			} 
+			// else start the count down
+			else {
+				background(0);			
+				fill(255);
+				textFont("Bebas");
+				textSize(windowHeight/5);
+				textAlign(CENTER);
+				if ( timer <= 9 ) {
+					text( "0:0" + timer + "s" , 0,windowHeight/5,windowWidth,windowHeight/2);
+				} else {
+					text( "0:" + timer + "s" , 0,windowHeight/5,windowWidth,windowHeight/2);
+				}
+				// Draw the middle line
+				rect(0,windowHeight/2,windowWidth,2);
 			}
-			// Draw the middle line
-			rect(0,windowHeight/2,windowWidth,2);
+		}
+		else if ( timerPosition == 1 )
+		{
+			// When timer is over, automatically go to the thank you page
+			if ( timer <= 0 )
+			{
+				trueButton.hide();
+				trueText.hide();
+				falseButton.hide();
+				falseText.hide();
+				timerVisible = false;
+				timer = 30;
+				background(0);
+				thanksPage.show();
+			} 
+			// else start the count down
+			else {
+				background(0);			
+				fill(255);
+				textFont("Bebas");
+				textSize(windowHeight/20);
+				textAlign(CENTER);
+				if ( timer <= 9 ) {
+					text( "IN   " + "0:0" + timer + "s" , 0,windowHeight*17/20,windowWidth,windowHeight/2);
+				} else {
+					text( "IN   " + "0:" + timer + "s" , 0,windowHeight*17/20,windowWidth,windowHeight/2);
+				}
+			}
 		}
 	}
-		
 }
 
 // Decrease timer variable by 1
@@ -134,11 +165,12 @@ function buttonFunction(index)
 		trueText.hide();
 		falseButton.hide();
 		falseText.hide();
-		timerVisible = false;
-		timer = 30;
+
+		timerPosition = 1;
+		
 		background(0);
 		thanksPage.show();
-		thanksPage.size( windowWidth * (2/3) , windowWidth * (2/3) * (1.68));
+		thanksPage.size( windowWidth * (1/2) , windowWidth * (1/2) * (1.68));
 		thanksPage.position((windowWidth/2) - (thanksPage.width/2), (windowHeight/2) - (thanksPage.height/2));
 
 	} 
@@ -150,11 +182,12 @@ function buttonFunction(index)
 		trueText.hide();
 		falseButton.hide();
 		falseText.hide();
-		timerVisible = false;
-		timer = 30;
+
+		timerPosition = 1;
+
 		background(0);
 		thanksPage.show();
-		thanksPage.size( windowWidth * (2/3) , windowWidth * (2/3) * (1.68));
+		thanksPage.size( windowWidth * (1/2) , windowWidth * (1/2) * (1.68));
 		thanksPage.position((windowWidth/2) - (thanksPage.width/2), (windowHeight/2) - (thanksPage.height/2));
 	}
 	
@@ -175,7 +208,7 @@ function windowResized()
     falseText.size(windowWidth/2,(windowWidth/2)*0.19);
 	falseText.position((windowWidth * (1/2)) - (falseText.width/2) ,(windowHeight * (5/8)) - (falseText.height/2) + (windowHeight/5));
 	
-	thanksPage.size( windowWidth * (2/3) , windowWidth * (2/3) * (1.68));
+	thanksPage.size( windowWidth * (1/2) , windowWidth * (1/2) * (1.68));
 	thanksPage.position((windowWidth/2) - (thanksPage.width/2), (windowHeight/2) - (thanksPage.height/2));
 
 	logo.size((windowWidth/2),(windowWidth/2)*0.17);
@@ -184,14 +217,14 @@ function windowResized()
 
 /* -------------------- PubNub -------------------- */
 // Send data to pubnub
-function sendTheMessage(index)
+function sendTheMessage( vote )
 {
 	dataServer.publish(
 	{
 		channel: dataChannelName,
 		message: 
 		{
-			theMessage: index,
+			theMessage: vote,
 		}
 	});
 }
@@ -200,7 +233,7 @@ function sendTheMessage(index)
 function readIncoming(inMessage) 
 {
 	// Make sure it's the right channel
-	if(inMessage.channel == textChannelName)
+	if(inMessage.channel == adminChannelName)
 	{
 		// Closing the initial Page & going to vote page
 		if ( inMessage.message.theMessage == 1 )
@@ -216,8 +249,10 @@ function readIncoming(inMessage)
 		// Voting pages
 		else if ( inMessage.message.theMessage == 3 || inMessage.message.theMessage == 5 || inMessage.message.theMessage == 7 || inMessage.message.theMessage == 9 || inMessage.message.theMessage == 11)
 		{
+			timerPosition = 0;
 			thanksPage.hide();			
 			timerVisible = true;
+			timer = 30;
 			trueButton.show();
 			trueText.show();
 			falseButton.show();
@@ -226,15 +261,14 @@ function readIncoming(inMessage)
 		// Thank you pages
 		else if ( inMessage.message.theMessage == 2 || inMessage.message.theMessage == 4 || inMessage.message.theMessage == 6 || inMessage.message.theMessage == 8 || inMessage.message.theMessage == 10 || inMessage.message.theMessage == 12 )
 		{
+			timerPosition = 1;
 			trueButton.hide();
 			trueText.hide();
 			falseButton.hide();
 			falseText.hide();
-			timerVisible = false;
-			timer = 30;
 			background(0);
 			thanksPage.show();
-			thanksPage.size( windowWidth * (2/3) , windowWidth * (2/3) * (1.68));
+			thanksPage.size( windowWidth * (1/2) , windowWidth * (1/2) * (1.68));
 			thanksPage.position((windowWidth/2) - (thanksPage.width/2), (windowHeight/2) - (thanksPage.height/2));				
 		}
 		// Final page
@@ -248,7 +282,7 @@ function readIncoming(inMessage)
 			timer = 30;
 			background(0);
 			thanksPage.show();
-			thanksPage.size( windowWidth * (2/3) , windowWidth * (2/3) * (1.68));
+			thanksPage.size( windowWidth * (1/2) , windowWidth * (1/2) * (1.68));
 			thanksPage.position((windowWidth/2) - (thanksPage.width/2), (windowHeight/2) - (thanksPage.height/2));	
 		}
 			

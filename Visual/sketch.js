@@ -1,15 +1,14 @@
 /* -------------------- Variables -------------------- */
 // Server variables
 var dataServer;
-var pubKey = 'pub-c-1a8840fa-907a-4ac5-9c35-593f16e41599';
-var subKey = 'sub-c-01d14cd8-e853-11e8-b652-8a5de3112bb9';
-var textChannelName = "textChannel";
-var dataChannelName = "dataChannel";
-var isDataSentToPubNub;
+var pubKey = 'pub-c-7b078ffc-490a-45f5-9ab4-67d0fe24506f';
+var subKey = 'sub-c-3f1bc6ee-24bd-11e9-b742-22d0c008a4f0';
+var adminChannelName = "adminChannel";
+var voteChannelName = "voteChannel";
 
 // Serial Connection variables
 var serial;       						// The serial port object
-var serialPortName = "COM7";			// The serial port name
+var serialPortName = "COM8";			// The serial port name
 var ardSend = {};						// JSON variable for Arduino's data
 var servoAngle1;     					// Value for servo motor 1 
 var servoAngle2;						// Value for servo motor 2
@@ -44,7 +43,7 @@ var percentageFalse1, percentageFalse2,
 var accuracy;
 
 // Timer variables
-var timer, shouldCount, timeAtStart;
+var timeAtStart;
 
 // Other
 var pageNumber;
@@ -74,29 +73,24 @@ function setup()
     });
     
     // Attach callbacks to the pubnub object to handle messages and connections
-    dataServer.addListener({ message: readIncoming, presence: whoisconnected })
-    dataServer.subscribe({channels: [textChannelName,dataChannelName]});
+    dataServer.addListener({ message: readIncoming })
+    dataServer.subscribe({ channels: [adminChannelName,voteChannelName] });
 
     // Setting up the serial port
     serial = new p5.SerialPort();		// Create the serial port object
     serial.open(serialPortName);		// Open the serialport
-    serial.on('open',ardCon);			// Open the socket connection
-    //setInterval(sendData,sendRate);		// Setting the send rate   
+    serial.on('open',ardCon);			// Open the socket connection 
 	
 	// Initialize variables
     pageNumber = 0;
 	trueCount = 0;
     falseCount = 0;
 	
-	isDataSentToPubNub = 0
 	isDataSentToArduino = 0;
 	isSongPlayed = 0;
 	
 	// Initializing timer variables
-	timer = 5;
-	shouldCount = false;
 	timeAtStart = second();
-	setInterval(timerFunction, 1000);					// Run timerFunction every second
 	
 	// --------------- Pages --------------- //
 	// Disclaimer
@@ -197,13 +191,11 @@ function draw()
 			disclaimer.hide();
 			initialPage.show();
 			logo.show();
-			shouldCount = true;
 		}
 	}
 	// Question 1
 	else if ( pageNumber == 1)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		initialPage.hide();
 		logo.hide();
@@ -223,7 +215,6 @@ function draw()
 	// Answer 1
 	else if ( pageNumber == 2)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		article1.hide();
 		resArticle1.show();
@@ -243,8 +234,7 @@ function draw()
 				percentage1 = (trueCount/(trueCount+falseCount))*100;
 				percentageFalse1 = (falseCount/(trueCount+falseCount))*100;
 			}
-			trueCount = 0;
-			falseCount = 0;
+			
 			// Arduino
 			sendData();
 			isDataSentToArduino = 1;
@@ -253,7 +243,6 @@ function draw()
 	// Question 2
 	else if ( pageNumber == 3)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		resArticle1.hide();
 		article2.show();
@@ -271,7 +260,6 @@ function draw()
 	// Answer 2
 	else if ( pageNumber == 4)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		article2.hide();
 		resArticle2.show();
@@ -291,8 +279,6 @@ function draw()
 				percentage2 = (trueCount/(trueCount+falseCount))*100;
 				percentageFalse2 = (falseCount/(trueCount+falseCount))*100;
 			}
-			trueCount = 0;
-			falseCount = 0;
 			// Arduino
 			sendData();
 			isDataSentToArduino = 1;
@@ -301,7 +287,6 @@ function draw()
 	// Question 3
 	else if ( pageNumber == 5)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		resArticle2.hide();
 		article3.show();
@@ -319,7 +304,6 @@ function draw()
 	// Answer 3
 	else if ( pageNumber == 6)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		article3.hide();
 		resArticle3.show();
@@ -339,8 +323,6 @@ function draw()
 				percentage3 = (trueCount/(trueCount+falseCount))*100;
 				percentageFalse3 = (falseCount/(trueCount+falseCount))*100;
 			}
-			trueCount = 0;
-			falseCount = 0;
 			// Arduino
 			sendData();
 			isDataSentToArduino = 1;
@@ -349,7 +331,6 @@ function draw()
 	// Question 4
 	else if ( pageNumber == 7)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		resArticle3.hide();
 		article4.show();
@@ -367,7 +348,6 @@ function draw()
 	// Answer 4
 	else if ( pageNumber == 8)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		article4.hide();
 		resArticle4.show();
@@ -387,8 +367,6 @@ function draw()
 				percentage4 = (trueCount/(trueCount+falseCount))*100;
 				percentageFalse4 = (falseCount/(trueCount+falseCount))*100;
 			}
-			trueCount = 0;
-			falseCount = 0;
 			// Arduino
 			sendData();
 			isDataSentToArduino = 1;
@@ -397,7 +375,6 @@ function draw()
 	// Question 5
 	else if ( pageNumber == 9)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		resArticle4.hide();
 		article5.show();
@@ -415,7 +392,6 @@ function draw()
 	// Answer 5
 	else if ( pageNumber == 10)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		article5.hide();
 		resArticle5.show();
@@ -435,8 +411,6 @@ function draw()
 				percentage5 = (trueCount/(trueCount+falseCount))*100;
 				percentageFalse5 = (falseCount/(trueCount+falseCount))*100;
 			}
-			trueCount = 0;
-			falseCount = 0;
 			// Arduino
 			sendData();
 			isDataSentToArduino = 1;
@@ -445,7 +419,6 @@ function draw()
 	// Question 6
 	else if ( pageNumber == 11)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		resArticle5.hide();
 		article6.show();
@@ -463,7 +436,6 @@ function draw()
 	// Answer 6
 	else if ( pageNumber == 12)
 	{
-		if ( isDataSentToPubNub == 0 ) {sendTheMessage();}
 		// Visual
 		article6.hide();
 		resArticle6.show();
@@ -483,8 +455,6 @@ function draw()
 				percentage6 = (trueCount/(trueCount+falseCount))*100;
 				percentageFalse6 = (falseCount/(trueCount+falseCount))*100;
 			}
-			trueCount = 0;
-			falseCount = 0;
 			// Arduino
 			sendData();
 			isDataSentToArduino = 1;
@@ -502,19 +472,6 @@ function draw()
 		//Arduino
 		isDataSentToArduino = 0;
 		pageNumber = "Done";
-	}
-}
-
-// Decrease timer variable by 1
-function timerFunction(){
-	if ( shouldCount == true)
-	{
-		timer = timer - 1;
-		if (timer <= 0){
-			pageNumber++;
-			isDataSentToPubNub = 0;
-			timer = 5;
-		}
 	}
 }
 
@@ -662,25 +619,14 @@ function windowResized() {}
 
 /* -------------------- PubNub -------------------- */
 // Send data to pubnub
-function sendTheMessage() {
-	dataServer.publish(
-    {
-        channel: textChannelName,
-        message: 
-        {
-            theMessage: pageNumber,
-        }
-    });
-	isDataSentToPubNub = 1;
-	//console.log(pageNumber);
-}
+function sendTheMessage() {}
 
 // Read data from pubnub
 function readIncoming(inMessage) 
 {
-    /*if(inMessage.channel == textChannelName)
+    if(inMessage.channel == adminChannelName)
     {
-		pageNumber++;
+		pageNumber = inMessage.message.theMessage;
 		if ( pageNumber == 1 )
 		{
 			trueCount = 0;
@@ -750,7 +696,7 @@ function readIncoming(inMessage)
 			}
 			trueCount = 0;
 			falseCount = 0;
-		} else if ( pageNumber == 12 ) 
+		} else if ( pageNumber == 13 ) 
 		{
 			if ( trueCount == 0 && falseCount == 0 )
 			{
@@ -764,21 +710,21 @@ function readIncoming(inMessage)
 			trueCount = 0;
 			falseCount = 0;
 		}
-    } */
+    } 
 
-    if(inMessage.channel == dataChannelName)
+    if(inMessage.channel == voteChannelName)
     {
 		if ( inMessage.message.theMessage == true )
 		{
+			console.log("t");
 			trueCount++;
 		} else if ( inMessage.message.theMessage == false )
 		{
+			console.log("f");
 			falseCount++;
 		}
     }
 }
-
-function whoisconnected(connectionInfo) {}
 
 /* -------------------- Arduino -------------------- */
 // Send data to Arduino

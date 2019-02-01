@@ -1,14 +1,15 @@
 /* -------------------- Variables -------------------- */
 // Server variables
 var dataServer;
-var pubKey = 'pub-c-1a8840fa-907a-4ac5-9c35-593f16e41599';
-var subKey = 'sub-c-01d14cd8-e853-11e8-b652-8a5de3112bb9';
-var textChannelName = "textChannel";
+var pubKey = 'pub-c-7b078ffc-490a-45f5-9ab4-67d0fe24506f';
+var subKey = 'sub-c-3f1bc6ee-24bd-11e9-b742-22d0c008a4f0';
+var adminChannelName = "adminChannel";
 
 // Variables
-var index;          // Keep track of stage
-var mainText;       // Message to be sent
-var nextButton;     // Next button
+var ExperimentStatus = 0;	// Message to be sent
+var timer = 30;			// Timer's time
+var nextButton;			// Next button
+
 
 /* -------------------- Functions -------------------- */
 function setup() 
@@ -26,18 +27,18 @@ function setup()
     });
     
     // Attach callbacks to the pubnub object to handle messages and connections
-    dataServer.addListener({ message: readIncoming, presence: whoisconnected })
-    dataServer.subscribe({channels: [textChannelName]});
+    dataServer.addListener({ message: readIncoming })
+    dataServer.subscribe({channels: [adminChannelName]});
 
     // Next Text Button    
     nextButton = createButton('Next Text');
     nextButton.size((windowWidth/2),(windowHeight/3));
     nextButton.position((windowWidth * (1/2)) - (nextButton.width/2) ,(windowHeight * (3/4)) - (nextButton.height/2));
     nextButton.mousePressed(buttonFunction);
-    
-	// Initialize variables
-    index = 0;
-    buttonFunction();
+	
+	// Initialize Timer	
+	setInterval(timerFunction, 1000);					// Run timerFunction every second
+	//sendTheMessage(0);
 }
 
 function draw() 
@@ -45,85 +46,42 @@ function draw()
     background(0);
     
     // Show the message 
-    textSize(30);
+    textSize(windowHeight/20);
 	fill(255);
 	textAlign(CENTER);
-    text(mainText, windowWidth * (1/4), windowHeight * (1/4), windowWidth * (2/4), windowHeight * (2/4));
+	
+    text(ExperimentStatus, windowWidth * (1/4), windowHeight * (1/4), windowWidth * (2/4), windowHeight * (2/4));
+	
+	if ( ExperimentStatus == 2 || ExperimentStatus == 4 || ExperimentStatus == 6 || ExperimentStatus == 8 || ExperimentStatus == 10 || ExperimentStatus == 12  )
+	{
+		// Timer
+		// When timer is over, automatically go to the thank you page
+		if ( timer <= 0 )
+		{
+			sendTheMessage(ExperimentStatus);
+			//timer = 5;
+		} 
+		// else start the count down
+		else {
+			if ( timer <= 9 ) {
+				text( "0:0" + timer + " s" , 0,windowHeight/20,windowWidth,windowHeight/2);
+			} else {
+				text( "0:" + timer + " s" , 0,windowHeight/20,windowWidth,windowHeight/2);
+			}
+		}
+	}
+}
+
+// Decrease timer variable by 1
+function timerFunction(){
+	timer = timer - 1;
 }
 
 // Base on index send a command
 function buttonFunction()
 {
-    if ( index == 0 ) 
-    {
-        mainText = "0";
-        sendTheMessage();
-        index++;
-        
-    } else if ( index == 1 )
-    {
-        mainText = "1";
-        sendTheMessage();
-        index++;
-    } else if ( index == 2 )
-    {
-        mainText = "2";
-        sendTheMessage();
-        index++;
-    } else if ( index == 3 )
-    {
-        mainText = "3";
-        sendTheMessage();
-        index++;
-    } else if ( index == 4 )
-    {
-        mainText = "4";
-        sendTheMessage();
-        index++;
-    } else if ( index == 5 )
-    {
-        mainText = "5";
-        sendTheMessage();
-        index++;
-    } else if ( index == 6 )
-    {
-        mainText = "6";
-        sendTheMessage();
-        index++;
-    } else if ( index == 7 )
-    {
-        mainText = "7";
-        sendTheMessage();
-        index++;
-    } else if ( index == 8 )
-    {
-        mainText = "8";
-        sendTheMessage();
-        index++;
-    } else if ( index == 9 )
-    {
-        mainText = "9";
-        sendTheMessage();
-        index++;
-    } else if ( index == 10 )
-    {
-        mainText = "10";
-        sendTheMessage();
-        index++;
-    } else if ( index == 11 )
-    {
-        mainText = "11";
-        sendTheMessage();
-        index++;
-    } else if ( index == 12 )
-    {
-        mainText = "12";
-        sendTheMessage();
-        index++;
-    } else 
-    {
-        // Do nothing
-    }
+	timer = 30;
+    sendTheMessage(ExperimentStatus);
 }
 
 function windowResized() 
@@ -135,19 +93,19 @@ function windowResized()
 
 /* -------------------- PubNub -------------------- */
 // Send data to pubnub
-function sendTheMessage()
+function sendTheMessage( command )
 {
     dataServer.publish(
     {
-        channel: textChannelName,
+        channel: adminChannelName,
         message: 
         {
-            theMessage: mainText,
+            theMessage: command,
         }
     });
+	
+	ExperimentStatus++;
 }
 
 // Read data from pubnub
 function readIncoming(inMessage) {}
-
-function whoisconnected(connectionInfo) {}
